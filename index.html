@@ -15,7 +15,7 @@
     <title>Hinário do Maestro | Aprenda a Reger Hinários da CCB com Autoridade</title>
     <meta name="description" content="Método exclusivo para Irmãos Encarregados de Orquestra, Instrutores e Músicos da CCB: aprenda a reger com franqueza nos Ensaios e G.E.M. da Congregação Cristã, domine o Hinário CCB e nunca mais passe vergonha.">
     <meta name="keywords" content="hinário ccb, congregação cristã, encarregado de orquestra ccb, instrutor ccb, regência ccb, músico ccb, hinário congregação cristã, ensaios ccb, g.e.m. ccb, música sacra, orquestra ccb, maestro ccb, metodologia de ensino ccb, instrução musical ccb">
-    <meta name="author" content="Hinário do Maestro">
+    <meta name="author" content="Maestro Rômulo Moreira">
     
     <!-- Canonical URL -->
     <link rel="canonical" href="https://hinariodomaestro.com.br/">
@@ -743,50 +743,26 @@
             width: 100%;
             height: 100%;
             background: rgba(0,0,0,0.85);
-            z-index: 20;
-            display: none;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            text-align: center;
             padding: 2rem;
-            box-sizing: border-box;
-            border-radius: 10px;
             opacity: 0;
-            transition: opacity 0.4s ease;
-            overflow: hidden;
-        }
-        
-        @media (max-width: 640px) {
-            .video-pause-overlay {
-                padding: 1rem;
-            }
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 20;
+            border-radius: 10px;
         }
         
         .video-pause-overlay.active {
-            display: flex;
             opacity: 1;
-        }
-        
-        .video-pause-overlay::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(255,193,7,0.2) 0%, transparent 70%);
-            animation: pulse-bg 2s infinite ease-in-out;
-        }
-        
-        @keyframes pulse-bg {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.7; }
-            100% { opacity: 0.3; }
+            pointer-events: all;
         }
         
         .pause-header {
             font-size: 1.5rem;
+            text-align: center;
             font-weight: 800;
             color: #FFC400;
             margin-bottom: 1rem;
@@ -1065,296 +1041,48 @@
                     </div>
                     
                     <div class="video-container aspect-video rounded-xl overflow-hidden shadow-2xl border-2 border-yellow-500/30 relative z-10">
+                        <!-- Overlay do vídeo com thumbnail -->
                         <div class="video-overlay" id="video-overlay">
                             <img src="https://img.youtube.com/vi/w7h5OLeXT9M/maxresdefault.jpg" alt="Thumbnail do vídeo" />
                             <div class="play-button"></div>
                         </div>
-                        <div class="video-loading" id="video-loading">
-                            <span class="loader"></span>
+                        
+                        <!-- Player de vídeo simples -->
+                        <div id="video-player-container" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;">
+                            <iframe 
+                                id="youtube-iframe"
+                                src="about:blank" 
+                                title="Hinário do Maestro - Vídeo de Apresentação" 
+                                frameborder="0" 
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                allowfullscreen
+                                style="width: 100%; height: 100%;"
+                            ></iframe>
                         </div>
-                        <!-- Overlay de persuasão quando o vídeo é pausado -->
-                        <div class="video-pause-overlay" id="video-pause-overlay">
-                            <h3 class="pause-header"><span class="mobile-hide">PARE! </span>VOCÊ ESTÁ PRESTES A PERDER ALGO VALIOSO</h3>
-                            <p class="pause-message">Encarregados e instrutores que assistiram este vídeo até o final transformaram suas orquestras de forma revolucionária. Tem certeza que deseja sair?</p>
-                            <p class="pause-urgent">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                                    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
-                                </svg>
-                                98% dos encarregados e instrutores que não terminaram o vídeo continuaram com problemas em suas orquestras
-                            </p>
-                            <button class="pause-cta" id="resume-video-btn">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                    <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-                                </svg>
-                                QUERO CONTINUAR
-                            </button>
-                        </div>
-                        <iframe 
-                            id="youtube-iframe"
-                            src="about:blank" 
-                            data-src="https://www.youtube.com/embed/w7h5OLeXT9M?controls=1&rel=0&showinfo=0&autoplay=1&enablejsapi=1" 
-                            title="Hinário do Maestro - Vídeo de Apresentação" 
-                            frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen
-                            loading="lazy"
-                        >
-                        </iframe>
                     </div>
                 </div>
 
-                <!-- Script para o contador regressivo -->
+                <!-- Script simplificado para o player de vídeo -->
                 <script>
-                    // Configuração do player de vídeo com cache
                     document.addEventListener('DOMContentLoaded', function() {
+                        // Elementos do vídeo
                         const videoOverlay = document.getElementById('video-overlay');
-                        const videoLoading = document.getElementById('video-loading');
+                        const playerContainer = document.getElementById('video-player-container');
                         const youtubeIframe = document.getElementById('youtube-iframe');
-                        const videoPauseOverlay = document.getElementById('video-pause-overlay');
-                        const resumeVideoBtn = document.getElementById('resume-video-btn');
                         
-                        let player;
-                        let pauseTimeout;
-                        let videoCurrentTime = 0; // Armazena a posição atual do vídeo quando pausado
-                        let maxAttempts = 5; // Número máximo de tentativas para retomar o vídeo
-                        let currentAttempt = 0;
-                        let youtubeApiLoaded = false;
-                        
-                        // Verifica se o vídeo já foi carregado antes (cache)
-                        const videoLoaded = localStorage.getItem('videoLoaded');
-                        
-                        if (videoLoaded) {
-                            videoLoading.style.display = 'none';
-                        }
-                        
-                        // Mostrar overlay de pausa
-                        function showVideoPauseOverlay() {
-                            // Armazenar o tempo atual do vídeo antes de mostrar o overlay
-                            if (player && typeof player.getCurrentTime === 'function') {
-                                videoCurrentTime = player.getCurrentTime();
-                                console.log('Vídeo pausado em: ' + videoCurrentTime + ' segundos');
-                            }
-                            videoPauseOverlay.classList.add('active');
-                        }
-                        
-                        // Esconder overlay de pausa
-                        function hideVideoPauseOverlay() {
-                            videoPauseOverlay.classList.remove('active');
-                        }
-                        
-                        // Função para continuar o vídeo com verificação robusta
-                        function continueVideo() {
-                            hideVideoPauseOverlay();
-                            currentAttempt = 0;
-                            
-                            // Usar um intervalo para tentar reproduzir o vídeo várias vezes para garantir
-                            const attemptPlay = setInterval(function() {
-                                if (currentAttempt >= maxAttempts) {
-                                    clearInterval(attemptPlay);
-                                    console.log('Número máximo de tentativas alcançado');
-                                    return;
-                                }
-                                
-                                currentAttempt++;
-                                console.log('Tentativa ' + currentAttempt + ' de reproduzir o vídeo');
-                                
-                                if (player && typeof player.getPlayerState === 'function') {
-                                    // Verificar estado atual do player
-                                    const playerState = player.getPlayerState();
-                                    console.log('Estado atual do player: ' + playerState);
-                                    
-                                    // Se não estiver reproduzindo (estados: -1=não iniciado, 0=finalizado, 2=pausado, 5=vídeo em fila)
-                                    if (playerState !== 1) {
-                                        // Posicionar o vídeo no tempo correto primeiro
-                                        if (videoCurrentTime > 0 && typeof player.seekTo === 'function') {
-                                            console.log('Posicionando vídeo em: ' + videoCurrentTime + ' segundos');
-                                            player.seekTo(videoCurrentTime, true);
-                                        }
-                                        
-                                        // Tentar reproduzir após um pequeno delay
-                                        setTimeout(function() {
-                                            if (typeof player.playVideo === 'function') {
-                                                console.log('Executando playVideo()');
-                                                player.playVideo();
-                                            }
-                                        }, 100);
-                                    } else {
-                                        // Se já estiver reproduzindo, não precisamos fazer nada
-                                        console.log('Vídeo já está reproduzindo');
-                                        clearInterval(attemptPlay);
-                                    }
-                                }
-                            }, 500); // Tentar a cada 500ms
-                        }
-                        
-                        // Evento de clique no botão de resumo
-                        resumeVideoBtn.addEventListener('click', function(e) {
-                            e.stopPropagation(); // Impedir propagação para o overlay
-                            continueVideo();
-                        });
-                        
-                        // Evento de clique em qualquer lugar do overlay para continuar o vídeo
-                        videoPauseOverlay.addEventListener('click', function(e) {
-                            // Verificar se o clique não foi no botão (já tratado acima)
-                            if (e.target !== resumeVideoBtn && !resumeVideoBtn.contains(e.target)) {
-                                continueVideo();
-                            }
-                        });
-                        
-                        // Carregar a API do YouTube de forma mais robusta
-                        function loadYouTubeAPI() {
-                            if (youtubeApiLoaded) return;
-                            
-                            // Define a função de callback global
-                            window.onYouTubeIframeAPIReady = function() {
-                                youtubeApiLoaded = true;
-                                initializeYouTubePlayer();
-                            };
-                            
-                            if (!window.YT) {
-                                const tag = document.createElement('script');
-                                tag.src = 'https://www.youtube.com/iframe_api';
-                                const firstScriptTag = document.getElementsByTagName('script')[0];
-                                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                            } else if (window.YT && window.YT.Player) {
-                                // API já está carregada
-                                youtubeApiLoaded = true;
-                                initializeYouTubePlayer();
-                            }
-                            
-                            // Failsafe: se após 2 segundos o player não inicializar, força a inicialização
-                                        setTimeout(() => {
-                                if (!youtubeApiLoaded && window.YT && window.YT.Player) {
-                                    youtubeApiLoaded = true;
-                                    initializeYouTubePlayer();
-                                } else if (!youtubeApiLoaded) {
-                                    // Tenta outra abordagem direta para players de vídeo
-                                    loadYouTubeDirectly();
-                                }
-                            }, 2000);
-                        }
-                        
-                        // Função para carregamento direto como fallback
-                        function loadYouTubeDirectly() {
-                                            videoLoading.style.opacity = '0';
-                            youtubeIframe.src = youtubeIframe.getAttribute('data-src');
-                            
-                            // Salvar no localStorage que o vídeo foi carregado
-                            localStorage.setItem('videoLoaded', 'true');
-                        }
-                        
-                        // Inicializa o player do YouTube com eventos
-                        function initializeYouTubePlayer() {
-                            const videoId = 'w7h5OLeXT9M'; // ID do seu vídeo
-                            
-                            // Se o iframe já foi carregado com src, use-o diretamente
-                            if (youtubeIframe.src.includes('youtube.com')) {
-                                try {
-                                    player = new YT.Player('youtube-iframe', {
-                                        events: {
-                                            'onStateChange': onPlayerStateChange,
-                                            'onReady': onPlayerReady,
-                                            'onError': onPlayerError
-                                        }
-                                    });
-                                } catch (e) {
-                                    console.error('Erro ao inicializar o player:', e);
-                                    loadYouTubeDirectly();
-                                }
-                            } else {
-                                // Se o iframe ainda está em branco, defina o src
-                                youtubeIframe.src = youtubeIframe.getAttribute('data-src');
-                                
-                                try {
-                                    player = new YT.Player('youtube-iframe', {
-                                        videoId: videoId,
-                                        playerVars: {
-                                            'controls': 1,
-                                            'rel': 0,
-                                            'showinfo': 0,
-                                            'autoplay': 1,
-                                            'enablejsapi': 1
-                                        },
-                                        events: {
-                                            'onStateChange': onPlayerStateChange,
-                                            'onReady': onPlayerReady,
-                                            'onError': onPlayerError
-                                        }
-                                    });
-                                } catch (e) {
-                                    console.error('Erro ao inicializar o player:', e);
-                                    loadYouTubeDirectly();
-                                }
-                            }
-                        }
-                        
-                        // Quando ocorrer erro no player
-                        function onPlayerError(event) {
-                            console.error('Erro no player do YouTube:', event.data);
-                            // Tentar alternativa direta
-                            loadYouTubeDirectly();
-                        }
-                        
-                        // Quando o player estiver pronto
-                        function onPlayerReady(event) {
-                            console.log('Player pronto');
-                            // Esconder o loader
-                            videoLoading.style.opacity = '0';
-                            
-                            // Definir qualidade alta para melhor experiência
-                            if (player && typeof player.setPlaybackQuality === 'function') {
-                                player.setPlaybackQuality('hd720');
-                            }
-                            
-                            // Salvar no localStorage que o vídeo foi carregado
-                            localStorage.setItem('videoLoaded', 'true');
-                        }
-                        
-                        // Responder às mudanças de estado do player
-                        function onPlayerStateChange(event) {
-                            console.log('Estado do player mudou para: ' + event.data);
-                            
-                                    // Estado 2 = pausado
-                            if (event.data === 2) {
-                                // Salvar o tempo atual do vídeo
-                                if (player && typeof player.getCurrentTime === 'function') {
-                                    videoCurrentTime = player.getCurrentTime();
-                                    console.log('Tempo atual armazenado: ' + videoCurrentTime);
-                                }
-                                
-                                // Mostrar overlay de pausa após um breve delay (para evitar exibições indesejadas)
-                                clearTimeout(pauseTimeout);
-                                pauseTimeout = setTimeout(() => {
-                                            showVideoPauseOverlay();
-                                        }, 500);
-                            } else if (event.data === 1) {
-                                    // Estado 1 = reproduzindo
-                                // Esconder overlay de pausa
-                                        hideVideoPauseOverlay();
-                                clearTimeout(pauseTimeout);
-                                    }
-                                }
-                        
-                        // Carregamento inicial do vídeo
+                        // Ao clicar no overlay
                         videoOverlay.addEventListener('click', function() {
-                            // Mostra o loader
-                            videoLoading.style.opacity = '1';
+                            // Configurar o iframe com a URL correta
+                            youtubeIframe.src = "https://www.youtube.com/embed/w7h5OLeXT9M?autoplay=1&rel=0&showinfo=0";
+                            
+                            // Mostrar o player
+                            playerContainer.style.display = 'block';
+                            
+                            // Esconder o overlay com fade
                             videoOverlay.style.opacity = '0';
                             setTimeout(() => {
                                 videoOverlay.style.display = 'none';
                             }, 500);
-                            
-                            // Carrega o vídeo
-                            loadYouTubeAPI();
-                            
-                            // Failsafe: se após 8 segundos o vídeo ainda não carregou, carrega diretamente
-                            setTimeout(() => {
-                                if (videoLoading.style.opacity !== '0') {
-                                    console.log('Timeout de carregamento atingido, usando método direto');
-                                    loadYouTubeDirectly();
-                                }
-                            }, 8000);
                         });
                     });
                     
