@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "submit-sitemap": "node submit-sitemap.js"
+    "submit-sitemap": "node submit-sitemap.js",
+    "optimize-images": "node optimize-images.js"
   },
   "keywords": [
     "hinario ccb", 
@@ -33,7 +34,8 @@
     "axios": "^1.6.2"
   },
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "sharp": "^0.32.6"
   },
   "engines": {
     "node": ">=16.0.0"

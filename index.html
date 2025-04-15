@@ -5,6 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
+    <!-- Preconnect para domínios externos -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
     <!-- SEO Tags Otimizadas para CCB -->
     <title>Hinário do Maestro | Aprenda a Reger Hinários da CCB com Autoridade</title>
     <meta name="description" content="Método exclusivo para Irmãos Encarregados de Orquestra, Instrutores e Músicos da CCB: aprenda a reger com franqueza nos Ensaios e G.E.M. da Congregação Cristã, domine o Hinário CCB e nunca mais passe vergonha.">
@@ -55,14 +61,6 @@
     }
     </script>
     
-    <!-- Script para controle de estatísticas avançadas de SEO -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XXXXXXXXXX');
-    </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome para ícones de alta qualidade -->
@@ -1093,6 +1091,7 @@
                         let videoCurrentTime = 0; // Armazena a posição atual do vídeo quando pausado
                         let maxAttempts = 5; // Número máximo de tentativas para retomar o vídeo
                         let currentAttempt = 0;
+                        let youtubeApiLoaded = false;
                         
                         // Verifica se o vídeo já foi carregado antes (cache)
                         const videoLoaded = localStorage.getItem('videoLoaded');
@@ -1175,42 +1174,113 @@
                             }
                         });
                         
-                        // Carregar a API do YouTube
+                        // Carregar a API do YouTube de forma mais robusta
                         function loadYouTubeAPI() {
+                            if (youtubeApiLoaded) return;
+                            
+                            // Define a função de callback global
+                            window.onYouTubeIframeAPIReady = function() {
+                                youtubeApiLoaded = true;
+                                initializeYouTubePlayer();
+                            };
+                            
                             if (!window.YT) {
                                 const tag = document.createElement('script');
                                 tag.src = 'https://www.youtube.com/iframe_api';
                                 const firstScriptTag = document.getElementsByTagName('script')[0];
                                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-                            }
-                        }
-                        
-                        // Função chamada quando a API do YouTube está pronta
-                        window.onYouTubeIframeAPIReady = function() {
-                            if (youtubeIframe.src.includes('youtube.com')) {
+                            } else if (window.YT && window.YT.Player) {
+                                // API já está carregada
+                                youtubeApiLoaded = true;
                                 initializeYouTubePlayer();
                             }
-                        };
+                            
+                            // Failsafe: se após 2 segundos o player não inicializar, força a inicialização
+                            setTimeout(() => {
+                                if (!youtubeApiLoaded && window.YT && window.YT.Player) {
+                                    youtubeApiLoaded = true;
+                                    initializeYouTubePlayer();
+                                } else if (!youtubeApiLoaded) {
+                                    // Tenta outra abordagem direta para players de vídeo
+                                    loadYouTubeDirectly();
+                                }
+                            }, 2000);
+                        }
+                        
+                        // Função para carregamento direto como fallback
+                        function loadYouTubeDirectly() {
+                            videoLoading.style.opacity = '0';
+                            youtubeIframe.src = youtubeIframe.getAttribute('data-src');
+                            
+                            // Salvar no localStorage que o vídeo foi carregado
+                            localStorage.setItem('videoLoaded', 'true');
+                        }
                         
                         // Inicializa o player do YouTube com eventos
                         function initializeYouTubePlayer() {
                             const videoId = 'w7h5OLeXT9M'; // ID do seu vídeo
                             
-                            player = new YT.Player('youtube-iframe', {
-                                events: {
-                                    'onStateChange': onPlayerStateChange,
-                                    'onReady': onPlayerReady
+                            // Se o iframe já foi carregado com src, use-o diretamente
+                            if (youtubeIframe.src.includes('youtube.com')) {
+                                try {
+                                    player = new YT.Player('youtube-iframe', {
+                                        events: {
+                                            'onStateChange': onPlayerStateChange,
+                                            'onReady': onPlayerReady,
+                                            'onError': onPlayerError
+                                        }
+                                    });
+                                } catch (e) {
+                                    console.error('Erro ao inicializar o player:', e);
+                                    loadYouTubeDirectly();
                                 }
-                            });
+                            } else {
+                                // Se o iframe ainda está em branco, defina o src
+                                youtubeIframe.src = youtubeIframe.getAttribute('data-src');
+                                
+                                try {
+                                    player = new YT.Player('youtube-iframe', {
+                                        videoId: videoId,
+                                        playerVars: {
+                                            'controls': 1,
+                                            'rel': 0,
+                                            'showinfo': 0,
+                                            'autoplay': 1,
+                                            'enablejsapi': 1
+                                        },
+                                        events: {
+                                            'onStateChange': onPlayerStateChange,
+                                            'onReady': onPlayerReady,
+                                            'onError': onPlayerError
+                                        }
+                                    });
+                                } catch (e) {
+                                    console.error('Erro ao inicializar o player:', e);
+                                    loadYouTubeDirectly();
+                                }
+                            }
+                        }
+                        
+                        // Quando ocorrer erro no player
+                        function onPlayerError(event) {
+                            console.error('Erro no player do YouTube:', event.data);
+                            // Tentar alternativa direta
+                            loadYouTubeDirectly();
                         }
                         
                         // Quando o player estiver pronto
                         function onPlayerReady(event) {
                             console.log('Player pronto');
+                            // Esconder o loader
+                            videoLoading.style.opacity = '0';
+                            
                             // Definir qualidade alta para melhor experiência
                             if (player && typeof player.setPlaybackQuality === 'function') {
                                 player.setPlaybackQuality('hd720');
                             }
+                            
+                            // Salvar no localStorage que o vídeo foi carregado
+                            localStorage.setItem('videoLoaded', 'true');
                         }
                         
                         // Responder às mudanças de estado do player
@@ -1249,38 +1319,14 @@
                             
                             // Carrega o vídeo
                             loadYouTubeAPI();
-                            youtubeIframe.src = youtubeIframe.getAttribute('data-src');
                             
-                            // Escuta o evento de carregamento do iframe
-                            youtubeIframe.addEventListener('load', function() {
-                                // Esconde o loader
-                                setTimeout(() => {
-                                    videoLoading.style.opacity = '0';
-                                    setTimeout(() => {
-                                        videoLoading.style.display = 'none';
-                                    }, 500);
-                                }, 1000);
-                                
-                                // Inicializa o player do YouTube
-                                if (window.YT && window.YT.Player) {
-                                    initializeYouTubePlayer();
+                            // Failsafe: se após 8 segundos o vídeo ainda não carregou, carrega diretamente
+                            setTimeout(() => {
+                                if (videoLoading.style.opacity !== '0') {
+                                    console.log('Timeout de carregamento atingido, usando método direto');
+                                    loadYouTubeDirectly();
                                 }
-                                
-                                // Salva no cache
-                                localStorage.setItem('videoLoaded', 'true');
-                            });
-                        });
-                        
-                        // Adicionando eventos de teclado para melhorar a acessibilidade
-                        document.addEventListener('keydown', function(e) {
-                            // Se o overlay de pausa estiver ativo
-                            if (videoPauseOverlay.classList.contains('active')) {
-                                // Tecla Enter ou Espaço
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                    e.preventDefault();
-                                    continueVideo();
-                                }
-                            }
+                            }, 8000);
                         });
                     });
                     
@@ -1652,7 +1698,7 @@
                         </svg>
                     </div>
                     <h3 class="text-lg sm:text-xl md:text-2xl font-display font-bold mb-2 sm:mb-3">Indicações de Andamento</h3>
-                    <p class="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">Indicações precisas de <span class="text-white font-medium">velocidade para cada hino</span> (Allegro, Moderato, Andante, etc.), garantindo que você conduza cada um deles no tempo adequado à sua mensagem.</p>
+                    <p class="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base">Indicações precisas de <span class="text-white font-medium">velocidade para cada hino</span>, garantindo que você conduza cada um deles no tempo adequado à sua mensagem.</p>
                     <div class="flex flex-wrap gap-2 mt-2">
                         <span class="module-badge text-xs">Tempo</span>
                         <span class="module-badge text-xs">Caráter</span>
@@ -1919,25 +1965,26 @@
                             <h3 class="text-lg sm:text-xl md:text-2xl font-display font-bold mb-3 sm:mb-4 text-white flex items-start group-hover:text-yellow-400 transition-colors duration-300">
                                 <span class="bg-yellow-500/20 rounded-full p-1.5 sm:p-2 mr-2 sm:mr-3 flex-shrink-0 group-hover:bg-yellow-500/30 transition-all duration-300">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </span>
-                                <span>Comunidade Exclusiva de Encarregados e Instrutores</span>
+                                <span>Técnicas Anti-Nervosismo para Regentes</span>
                             </h3>
                             
                             <p class="text-gray-300 leading-relaxed mb-auto text-sm sm:text-base">
-                                Acesso a um grupo privado onde você poderá trocar experiências com outros encarregados de orquestra, compartilhar desafios e receber orientações específicas para sua orquestra.
+                                Domine métodos exclusivos para eliminar o tremor nas mãos, a insegurança e o medo de errar que afetam sua autoridade diante da orquestra e prejudicam o louvor.
                             </p>
+                            
                             <!-- Badge com posicionamento fixo -->
-                            <div class="mt-4">
-                                <div class="inline-flex bg-yellow-500/10 rounded-lg py-1.5 px-3 text-sm text-yellow-500 font-medium border border-yellow-500/20 items-center group-hover:bg-yellow-500/20 transition-all duration-300 relative overflow-hidden">
+                            <div class="mt-3 sm:mt-4">
+                                <div class="inline-flex bg-yellow-500/10 rounded-lg py-1 sm:py-1.5 px-2 sm:px-3 text-xs sm:text-sm text-yellow-500 font-medium border border-yellow-500/20 items-center group-hover:bg-yellow-500/20 transition-all duration-300 relative overflow-hidden">
                                     <!-- Efeito de brilho no hover -->
                                     <div class="absolute inset-0 w-1/3 h-full bg-white/10 -skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-all duration-1000 ease-in-out"></div>
                                     
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2 flex-shrink-0 group-hover:text-yellow-400 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4 mr-1.5 sm:mr-2 flex-shrink-0 group-hover:text-yellow-400 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                     </svg>
-                                    <span class="relative z-10 group-hover:text-yellow-400 transition-colors duration-300">Acesso por 12 meses</span>
+                                    <span class="relative z-10 group-hover:text-yellow-400 transition-colors duration-300">Aplicação Imediata</span>
                                 </div>
                             </div>
                         </div>
@@ -2334,7 +2381,7 @@
                 <div class="h-px bg-gradient-to-r from-transparent via-yellow-500/30 to-transparent w-full my-6"></div>
                 
                 <p class="text-gray-200 text-lg mb-6 leading-relaxed">
-                    Com o HINÁRIO DO MAESTRO, os irmãos da CCB têm acesso a um recurso valioso para enriquecer o som da sua orquestra, criando um louvor inspirador e emocionante. As anotações e sugestões do Maestro Rômulo Moreira trazem uma nova dimensão à interpretação dos hinos, tornando-os ainda mais belos e significativos para a sua COMUM.
+                    Com o HINÁRIO DO MAESTRO, os irmãos da CCB têm acesso a um recurso valioso para enriquecer o som da sua orquestra, criando um louvor inspirador e emocionante. As anotações e sugestões do Maestro Rômulo Moreira trazem uma nova dimensão à interpretação dos hinos, tornando-os ainda mais belos e significativos para a sua Comum Congregação.
                 </p>
             </div>
             
@@ -2826,26 +2873,39 @@
         <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <!-- Título principal no estilo da imagem de referência -->
             <div class="text-center mb-14">
-                <p class="text-yellow-500 uppercase tracking-wide text-sm md:text-base font-semibold mb-3">SEU MENTOR</p>
+                <p class="text-yellow-500 uppercase tracking-wide text-xs font-thin mb-3 tracking-[3px]">SEU MENTOR</p>
                 <h2 class="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-4">
                     Maestro Rômulo Moreira
                 </h2>
-                <p class="text-yellow-500 italic text-lg md:text-xl font-medium">"Transformando vidas através da música e da regência"</p>
+                <p class="text-yellow-500 italic text-lg md:text-xl font-medium font-thin">"Transformando vidas através da música e da regência"</p>
             </div>
             
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-16">
+            <div class="flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-16">
                 <!-- Imagem do Maestro com Cards Sobrepostos -->
-                <div class="w-full lg:w-5/12 relative">
-                    <!-- Cards sobrepostos com efeito -->
-                    <div class="absolute top-6 -left-6 w-full h-full bg-yellow-500/10 rounded-xl border border-yellow-500/20 transform -rotate-3"></div>
-                    <div class="absolute top-3 -left-3 w-full h-full bg-yellow-500/20 rounded-xl border border-yellow-500/30 transform rotate-1"></div>
+                <div class="w-full lg:w-5/12 relative perspective-1000">
+                    <!-- Cards sobrepostos com efeito de movimento - representando partituras musicais -->
+                    <div class="absolute top-6 -left-6 w-full h-full bg-yellow-500/10 rounded-xl border border-yellow-500/20 transform -rotate-3 hover:-rotate-6 transition-transform duration-500 ease-in-out card-float animate-float-slow" 
+                         style="animation-delay: 0.5s;"
+                         title="Partituras exclusivas">
+                        <!-- Notas musicais sutis -->
+                        <div class="absolute top-4 right-4 opacity-30 text-yellow-500">♪</div>
+                        <div class="absolute bottom-8 left-8 opacity-30 text-yellow-500 text-2xl">♫</div>
+                    </div>
+                    
+                    <div class="absolute top-3 -left-3 w-full h-full bg-yellow-500/20 rounded-xl border border-yellow-500/30 transform rotate-1 hover:rotate-3 transition-transform duration-500 ease-in-out card-float animate-float" 
+                         style="animation-delay: 0.2s;"
+                         title="Conhecimento musical">
+                        <!-- Símbolos de dinâmica musical -->
+                        <div class="absolute top-6 left-10 opacity-30 text-yellow-500 font-serif italic">mf</div>
+                        <div class="absolute bottom-10 right-6 opacity-30 text-yellow-500 font-serif italic">pp</div>
+                    </div>
                     
                     <!-- Container da imagem principal -->
-                    <div class="relative rounded-xl overflow-hidden border-2 border-yellow-500/40 shadow-xl shadow-black/30 group">
+                    <div class="relative rounded-xl overflow-hidden border-2 border-yellow-500/40 shadow-xl shadow-black/30 group transform transition-all duration-700 hover:scale-[1.02] card-tilt">
                         <!-- Placeholder para a imagem - seria ideal substituir por uma imagem real do maestro -->
                         <div class="relative bg-richblack-400 aspect-[4/5] w-full overflow-hidden">
                             <!-- Imagem real do maestro -->
-                            <img src="assets/expert/WhatsApp Image 2025-01-19 at 14.24.41.jpeg" alt="Maestro Rômulo Moreira" class="w-full h-full object-cover">
+                            <img src="assets/expert/WhatsApp Image 2025-01-19 at 14.24.41.jpeg" alt="Maestro Rômulo Moreira" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
                             
                             <!-- Overlay no hover -->
                             <div class="absolute inset-0 bg-yellow-500/0 group-hover:bg-yellow-500/10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -2888,16 +2948,14 @@
                 <div class="w-full lg:w-7/12">
                     <!-- Biografia -->
                     <div class="space-y-4 text-gray-300">
-                        <p>
-                            Iniciou seus estudos aos 11 anos quando sua avó lhe deu seu primeiro violino. Aprendeu as primeiras notas na Congregação Cristã no Brasil, e rapidamente demonstrou talento o qual o fez aperfeiçoar seus estudos na Escola Municipal de Música de São Paulo.
+                        <h3 class="text-2xl font-display font-bold text-yellow-500 mb-4">Quem é o maestro por trás do Hinário do Maestro?</h3>
+                        
+                        <p class="text-lg">
+                            Meu nome é <span class="text-white font-semibold">Rômulo Moreira</span>. Sou maestro e violinista profissional há mais de 20 anos, e nessa caminhada já ajudei <span class="text-yellow-500 font-bold">mais de 5 mil alunos</span> a destravarem na música. Mas mais do que números, meu chamado é claro: <span class="text-white font-semibold">servir o Reino e ajudar irmãos como você</span> a reger os hinos da CCB com mais confiança, beleza e entendimento.
                         </p>
                         
-                        <p>
-                            Como maestro foi o idealizador da Camerata Jovem Santista e do Festival Bravo! Também regeu como assistente a OCB e Orquestra Cubatão Sinfonia.
-                        </p>
-                        
-                        <p>
-                            Em 2022 foi selecionado e premiado em festivais no México (Jalisco) e Alemanha (Berlim) o qual pode receber orientação do maestro Colin Metters, um dos professores mais respeitados da Europa.
+                        <p class="text-lg">
+                            Criei o <span class="text-white font-semibold">Hinário do Maestro</span>, um material exclusivo que te dá ideias prontas de interpretação, com dinâmicas que realçam a poesia e a emoção de cada hino. É o atalho que eu queria ter quando comecei. Agora, tá nas suas mãos evoluir de verdade e honrar esse ministério com excelência!
                         </p>
                         
                         <p>
@@ -3315,5 +3373,32 @@
             </div>
         </div>
     </footer>
+    
+    <!-- Script de Lazy Loading para imagens - não afeta o design -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Encontra todas as imagens que não têm o atributo 'loading'
+            const images = document.querySelectorAll('img:not([loading])');
+            
+            // Adiciona o atributo 'loading="lazy"' para navegadores modernos
+            images.forEach(img => {
+                // Não modifica imagens que já estão visíveis no viewport inicial
+                if (!isInViewport(img)) {
+                    img.setAttribute('loading', 'lazy');
+                }
+            });
+            
+            // Função auxiliar para verificar se o elemento está no viewport
+            function isInViewport(element) {
+                const rect = element.getBoundingClientRect();
+                return (
+                    rect.top >= 0 &&
+                    rect.left >= 0 &&
+                    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+                );
+            }
+        });
+    </script>
 </body>
 </html> 

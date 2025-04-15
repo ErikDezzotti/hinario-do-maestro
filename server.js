@@ -29,6 +29,22 @@ app.use(
   express.static(path.join(__dirname, "."), {
     maxAge: cacheTime * 1000,
     immutable: true,
+    setHeaders: function (res, path) {
+      // Cabeçalhos específicos por tipo de arquivo
+      if (path.endsWith('.html')) {
+        // HTML não deve ser cacheado por muito tempo
+        res.setHeader('Cache-Control', 'public, max-age=0');
+      } else if (path.match(/\.(jpg|jpeg|png|gif|webp)$/)) {
+        // Imagens podem ser cacheadas por longo tempo
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (path.match(/\.(css|js)$/)) {
+        // CSS e JS também com cache longo + imutável
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (path.match(/\.(woff|woff2|ttf|otf|eot)$/)) {
+        // Fontes
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      }
+    }
   })
 );
 
