@@ -5,90 +5,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
  
-    <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code - Versão Otimizada -->
     <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '696368755825539');
-    fbq('track', 'PageView');
-    
-    // Função para rastrear cliques nos links da Hotmart
-    function trackHotmartClick(event) {
-      if (event.target.tagName === 'A' && event.target.href && event.target.href.includes('pay.hotmart.com/D82016778M')) {
-        fbq('track', 'InitiateCheckout');
-        sendEventViaAPI('InitiateCheckout');
-      }
-    }
-    
-    // Função para enviar eventos via API do Facebook
-    function sendEventViaAPI(eventName) {
-      // Obter dados do navegador
-      const userAgent = navigator.userAgent;
-      const url = window.location.href;
-      
-      // Criar timestamp
-      const eventTime = Math.floor(Date.now() / 1000);
-      
-      // Payload do evento
-      const eventData = {
-        data: [{
-          event_name: eventName,
-          event_time: eventTime,
-          action_source: 'website',
-          event_source_url: url,
-          user_data: {
-            client_user_agent: userAgent,
-            fbp: getCookie('_fbp'),
-            fbc: getFbcCookie()
+    // Garantir que o código só executa em ambiente de navegador
+    if (typeof window !== 'undefined') {
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        
+        // Inicializar o pixel
+        fbq('init', '696368755825539');
+        
+        // Disparar PageView imediatamente após a inicialização
+        fbq('track', 'PageView');
+        
+        // Função para enviar eventos via API do Facebook
+        function sendEventViaAPI(eventName) {
+          try {
+              // Obter dados do navegador
+              const userAgent = navigator.userAgent;
+              const url = window.location.href;
+              
+              // Criar timestamp
+              const eventTime = Math.floor(Date.now() / 1000);
+              
+              // Payload do evento
+              const eventData = {
+                data: [{
+                  event_name: eventName,
+                  event_time: eventTime,
+                  action_source: 'website',
+                  event_source_url: url,
+                  user_data: {
+                    client_user_agent: userAgent,
+                    fbp: getCookie('_fbp'),
+                    fbc: getFbcCookie()
+                  }
+                }]
+              };
+              
+              // Enviar dados via API
+              fetch(`https://graph.facebook.com/v17.0/696368755825539/events?access_token=EAAOv1S7EJPUBOwLTvVYO2lzz2NZCB48Ker62GaMwOKosNJ9QGsjnLJdDBTdexfYnbddjNgW8eHNeH0J29XlFzwYAn7qPBdjLmJfQWawjX3VgwUD7liEcODlHTHqwRe1EsoW46eiTLZAxwmyfCWYekFm1jTBcC4ZBV5cYN18b46aWfs2DfH27gEEZA6l8Rrsc7AZDZD`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(eventData),
+              })
+              .catch(error => console.error('Erro ao enviar evento:', error));
+          } catch (error) {
+              console.error('Erro ao processar evento:', error);
           }
-        }]
-      };
-      
-      // Enviar dados via API
-      fetch(`https://graph.facebook.com/v17.0/696368755825539/events?access_token=EAAOv1S7EJPUBOwLTvVYO2lzz2NZCB48Ker62GaMwOKosNJ9QGsjnLJdDBTdexfYnbddjNgW8eHNeH0J29XlFzwYAn7qPBdjLmJfQWawjX3VgwUD7liEcODlHTHqwRe1EsoW46eiTLZAxwmyfCWYekFm1jTBcC4ZBV5cYN18b46aWfs2DfH27gEEZA6l8Rrsc7AZDZD`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      })
-      .catch(error => console.error('Erro ao enviar evento:', error));
-    }
+        }
 
-    // Função para obter cookie _fbp
-    function getCookie(name) {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop().split(';').shift();
-      return '';
-    }
+        // Função para obter cookie _fbp
+        function getCookie(name) {
+          try {
+              const value = `; ${document.cookie}`;
+              const parts = value.split(`; ${name}=`);
+              if (parts.length === 2) return parts.pop().split(';').shift();
+              return '';
+          } catch (error) {
+              console.error('Erro ao obter cookie:', error);
+              return '';
+          }
+        }
 
-    // Função para obter cookie fbc ou criar a partir de fbclid na URL
-    function getFbcCookie() {
-      const fbc = getCookie('_fbc');
-      if (fbc) return fbc;
-      
-      const params = new URLSearchParams(window.location.search);
-      const fbclid = params.get('fbclid');
-      if (fbclid) {
-        return `fb.1.${Date.now()}.${fbclid}`;
-      }
-      return '';
+        // Função para obter cookie fbc ou criar a partir de fbclid na URL
+        function getFbcCookie() {
+          try {
+              const fbc = getCookie('_fbc');
+              if (fbc) return fbc;
+              
+              const params = new URLSearchParams(window.location.search);
+              const fbclid = params.get('fbclid');
+              if (fbclid) {
+                return `fb.1.${Date.now()}.${fbclid}`;
+              }
+              return '';
+          } catch (error) {
+              console.error('Erro ao obter fbc cookie:', error);
+              return '';
+          }
+        }
+
+        // Função para rastrear cliques nos links da Hotmart
+        function trackHotmartClick(event) {
+          try {
+              // Verifica se o clique foi em um link para o checkout da Hotmart
+              const element = event.target.closest('a');
+              if (element && element.href && element.href.includes('pay.hotmart.com/D82016778M')) {
+                // Envia evento via Pixel e API
+                fbq('track', 'InitiateCheckout');
+                sendEventViaAPI('InitiateCheckout');
+                console.log('Evento InitiateCheckout enviado');
+              }
+          } catch (error) {
+              console.error('Erro ao rastrear clique:', error);
+          }
+        }
+
+        // Adicionar listener para capturar cliques nos links quando o DOM estiver pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Enviar PageView via API também
+                sendEventViaAPI('PageView');
+                console.log('Evento PageView enviado via API');
+                
+                // Adicionar evento de clique em todo o documento
+                document.body.addEventListener('click', trackHotmartClick);
+            });
+        } else {
+            // DOM já carregado, executar imediatamente
+            sendEventViaAPI('PageView');
+            console.log('Evento PageView enviado via API (DOM já carregado)');
+            
+            // Adicionar evento de clique em todo o documento
+            document.body.addEventListener('click', trackHotmartClick);
+        }
+
+        // Backup: Garantir que o PageView foi enviado, mesmo se houver algum problema com o DOMContentLoaded
+        setTimeout(function() {
+            if (typeof fbq === 'function') {
+                fbq('track', 'PageView');
+                console.log('Evento PageView enviado via timeout');
+            }
+        }, 2000);
     }
-    
-    // Adicionar listener para capturar cliques nos links
-    document.addEventListener('DOMContentLoaded', function() {
-      // Enviar PageView via API também
-      sendEventViaAPI('PageView');
-      
-      document.body.addEventListener('click', trackHotmartClick);
-    });
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=696368755825539&ev=PageView&noscript=1"
