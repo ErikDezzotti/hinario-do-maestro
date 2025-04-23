@@ -4,6 +4,96 @@
     <!-- Adicionando meta tags necessárias para responsividade adequada -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ 
+    <!-- Meta Pixel Code -->
+    <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '696368755825539');
+    fbq('track', 'PageView');
+    
+    // Função para rastrear cliques nos links da Hotmart
+    function trackHotmartClick(event) {
+      if (event.target.tagName === 'A' && event.target.href && event.target.href.includes('pay.hotmart.com/D82016778M')) {
+        fbq('track', 'InitiateCheckout');
+        sendEventViaAPI('InitiateCheckout');
+      }
+    }
+    
+    // Função para enviar eventos via API do Facebook
+    function sendEventViaAPI(eventName) {
+      // Obter dados do navegador
+      const userAgent = navigator.userAgent;
+      const url = window.location.href;
+      
+      // Criar timestamp
+      const eventTime = Math.floor(Date.now() / 1000);
+      
+      // Payload do evento
+      const eventData = {
+        data: [{
+          event_name: eventName,
+          event_time: eventTime,
+          action_source: 'website',
+          event_source_url: url,
+          user_data: {
+            client_user_agent: userAgent,
+            fbp: getCookie('_fbp'),
+            fbc: getFbcCookie()
+          }
+        }]
+      };
+      
+      // Enviar dados via API
+      fetch(`https://graph.facebook.com/v17.0/696368755825539/events?access_token=EAAOv1S7EJPUBOwLTvVYO2lzz2NZCB48Ker62GaMwOKosNJ9QGsjnLJdDBTdexfYnbddjNgW8eHNeH0J29XlFzwYAn7qPBdjLmJfQWawjX3VgwUD7liEcODlHTHqwRe1EsoW46eiTLZAxwmyfCWYekFm1jTBcC4ZBV5cYN18b46aWfs2DfH27gEEZA6l8Rrsc7AZDZD`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(eventData),
+      })
+      .catch(error => console.error('Erro ao enviar evento:', error));
+    }
+
+    // Função para obter cookie _fbp
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+      return '';
+    }
+
+    // Função para obter cookie fbc ou criar a partir de fbclid na URL
+    function getFbcCookie() {
+      const fbc = getCookie('_fbc');
+      if (fbc) return fbc;
+      
+      const params = new URLSearchParams(window.location.search);
+      const fbclid = params.get('fbclid');
+      if (fbclid) {
+        return `fb.1.${Date.now()}.${fbclid}`;
+      }
+      return '';
+    }
+    
+    // Adicionar listener para capturar cliques nos links
+    document.addEventListener('DOMContentLoaded', function() {
+      // Enviar PageView via API também
+      sendEventViaAPI('PageView');
+      
+      document.body.addEventListener('click', trackHotmartClick);
+    });
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=696368755825539&ev=PageView&noscript=1"
+    /></noscript>
+    <!-- End Meta Pixel Code -->
     
     <!-- Preconnect para domínios externos -->
     <link rel="preconnect" href="https://cdn.tailwindcss.com">
@@ -14,7 +104,7 @@
     <!-- SEO Tags Otimizadas para CCB -->
     <title>Hinário do Maestro | Aprenda a Reger Hinários da CCB com Autoridade</title>
     <meta name="description" content="Método exclusivo para Irmãos Encarregados de Orquestra, Instrutores e Músicos da CCB: aprenda a reger com franqueza nos Ensaios e G.E.M. da Congregação Cristã, domine o Hinário CCB e nunca mais passe vergonha.">
-    <meta name="keywords" content="hinário ccb, congregação cristã, encarregado de orquestra ccb, instrutor ccb, regência ccb, músico ccb, hinário congregação cristã, ensaios ccb, g.e.m. ccb, música sacra, orquestra ccb, maestro ccb, metodologia de ensino ccb, instrução musical ccb">
+    <meta name="keywords" content="hinário ccb, congregação cristã, encarregado de orquestra ccb, instrutor ccb, regência ccb, músico ccb, hinário congregação cristã, ensaios ccb, g.e.m. ccb, música sacra, orquestra ccb, maestro ccb, metodologia de ensino ccb, instrução musical ccb, hinario, hinario 5, hinario 5 ccb, hinario ccb cordas, ccb cordas, hinario cordas ccb, hinario cordas, partitura hinario ccb, hinario ccb download, hinario ccb pdf, musica hinario ccb, hinario novo, hinario 5 download, hinário digital, regência hinário ccb, como reger hinário ccb, aprenda a reger hinário, hinario ccb violino, hinario ccb trompete, hinario ccb flauta, hinario ccb clarinete, hinario ccb orquestra">
     <meta name="author" content="Maestro Rômulo Moreira">
     
     <!-- Canonical URL -->
@@ -1877,15 +1967,16 @@
                     <div class="absolute inset-0 bg-green-500/30 rounded-lg blur-md transform scale-105"></div>
                     
                     <!-- Botão -->
-                    <a href="https://pay.hotmart.com/D82016778M?checkoutMode=10" class="relative btn-shine-green btn-pulse-green inline-flex justify-center items-center text-xl font-bold py-5 px-10 sm:px-14 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-lg shadow-xl transform transition-all hover:scale-105 focus:scale-105 focus:outline-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href="https://pay.hotmart.com/D82016778M?checkoutMode=10" class="relative btn-shine-green btn-pulse-green inline-flex justify-center items-center text-base sm:text-lg font-bold py-4 sm:py-5 px-4 sm:px-8 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white rounded-lg shadow-xl transform transition-all hover:scale-105 focus:scale-105 focus:outline-none w-full sm:w-auto">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-white hidden sm:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                         </svg>
-                        QUERO GANHAR TUDO ISSO
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 ml-2 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <span class="text-center">QUERO ELEVAR O NÍVEL DA MINHA ORQUESTRA</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2 text-white hidden sm:inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                         </svg>
                     </a>
+                    </div>
                 </div>
             </div>
         </div>
